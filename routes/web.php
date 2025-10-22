@@ -1,3 +1,4 @@
+resources/views/flights/search-results.blade.php
 <?php
 
 use Illuminate\Support\Facades\Route;
