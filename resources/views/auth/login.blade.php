@@ -1,46 +1,39 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar Sesión - X-Fly</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="/">
-                <strong>✈️ X-FLY</strong>
-            </a>
-        </div>
-    </nav>
-
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h4 class="mb-0">Iniciar Sesión</h4>
-                    </div>
-                    <div class="card-body">
-                        <form>
-                            <div class="mb-3">
-                                <label class="form-label">Correo Electrónico</label>
-                                <input type="email" class="form-control" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Contraseña</label>
-                                <input type="password" class="form-control" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100">Iniciar Sesión</button>
-                        </form>
-                        <div class="text-center mt-3">
-                            <a href="#">¿Olvidaste tu contraseña?</a>
-                        </div>
-                    </div>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+        <a class="navbar-brand" href="{{ route('home') }}">
+            <i class="fas fa-plane me-2"></i>
+            <strong>X-FLY</strong>
+        </a>
+        
+        <div class="navbar-nav ms-auto">
+            @auth
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user me-1"></i> {{ Auth::user()->first_name }}
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ route('bookings.index') }}">
+                            <i class="fas fa-ticket-alt me-2"></i>Mis Reservas
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="dropdown-item">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
                 </div>
-            </div>
+            @else
+                <a class="nav-link" href="{{ route('login') }}">
+                    <i class="fas fa-sign-in-alt me-1"></i> Iniciar Sesión
+                </a>
+                <a class="nav-link" href="{{ route('register') }}">
+                    <i class="fas fa-user-plus me-1"></i> Registrarse
+                </a>
+            @endauth
         </div>
     </div>
-</body>
-</html>
+</nav>
