@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resultados de Búsqueda - X-Fly</title>
+    <title>Completar Reserva - X-Fly</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -18,94 +18,119 @@
     </nav>
 
     <div class="container mt-4">
-        <h2>✈️ Resultados de Búsqueda</h2>
-        
-        <div class="card mb-4">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0">Vuelos Encontrados</h5>
-            </div>
-            <div class="card-body">
-                <!-- Ejemplo de vuelo -->
-                <div class="flight-card border rounded p-3 mb-3">
-                    <div class="row align-items-center">
-                        <div class="col-md-3">
-                            <h5>XF100</h5>
-                            <small class="text-muted">Airbus A320</small>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <strong>08:00</strong>
-                                    <br>
-                                    <small>BOG - Bogotá</small>
-                                </div>
-                                <div class="text-center">
-                                    <small>1h 00m</small>
-                                    <br>
-                                    <i class="fas fa-plane text-muted"></i>
-                                </div>
-                                <div>
-                                    <strong>09:00</strong>
-                                    <br>
-                                    <small>MDE - Medellín</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <span class="badge bg-success">180 asientos</span>
-                        </div>
-                        <div class="col-md-3 text-end">
-                            <h5>$250.000</h5>
-                            <a href="/bookings/create?flight=XF100" class="btn btn-primary btn-sm">
-                                Seleccionar
-                            </a>
-                        </div>
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0"><i class="fas fa-user-friends me-2"></i>Datos de los Pasajeros</h4>
                     </div>
-                </div>
+                    <div class="card-body">
+                        <!-- Información del vuelo -->
+                        @php
+                            $flightData = json_decode($flight_data, true);
+                            $passengersCount = $passengers_count;
+                        @endphp
 
-                <!-- Más vuelos de ejemplo -->
-                <div class="flight-card border rounded p-3 mb-3">
-                    <div class="row align-items-center">
-                        <div class="col-md-3">
-                            <h5>XF101</h5>
-                            <small class="text-muted">Boeing 737</small>
+                        <div class="alert alert-info mb-4">
+                            <h6 class="alert-heading">Información del Vuelo:</h6>
+                            <p class="mb-1"><strong>Ruta:</strong> {{ $flightData['departure']['airport'] }} → {{ $flightData['arrival']['airport'] }}</p>
+                            <p class="mb-1"><strong>Vuelo:</strong> {{ $flightData['airline']['name'] }} {{ $flightData['flight']['number'] }}</p>
+                            <p class="mb-1"><strong>Fecha:</strong> {{ \Carbon\Carbon::parse($departure_date)->format('d/m/Y') }}</p>
+                            <p class="mb-0"><strong>Pasajeros:</strong> {{ $passengersCount }}</p>
                         </div>
-                        <div class="col-md-4">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <strong>10:00</strong>
-                                    <br>
-                                    <small>MDE - Medellín</small>
+
+                        <form method="POST" action="{{ route('bookings.store') }}">
+                            @csrf
+                            <input type="hidden" name="flight_data" value="{{ $flight_data }}">
+                            <input type="hidden" name="passengers_count" value="{{ $passengers_count }}">
+                            <input type="hidden" name="departure_date" value="{{ $departure_date }}">
+
+                            @for($i = 1; $i <= $passengersCount; $i++)
+                                <div class="card mb-4">
+                                    <div class="card-header bg-light">
+                                        <h5 class="mb-0">Pasajero {{ $i }}</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Nombres *</label>
+                                                    <input type="text" class="form-control" name="passengers[{{$i}}][first_name]" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Apellidos *</label>
+                                                    <input type="text" class="form-control" name="passengers[{{$i}}][last_name]" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Tipo de Documento *</label>
+                                                    <select class="form-select" name="passengers[{{$i}}][document_type]" required>
+                                                        <option value="CC">Cédula de Ciudadanía</option>
+                                                        <option value="CE">Cédula de Extranjería</option>
+                                                        <option value="PP">Pasaporte</option>
+                                                        <option value="TI">Tarjeta de Identidad</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Número de Documento *</label>
+                                                    <input type="text" class="form-control" name="passengers[{{$i}}][document_number]" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Fecha de Nacimiento *</label>
+                                                    <input type="date" class="form-control" name="passengers[{{$i}}][birth_date]" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Género *</label>
+                                                    <select class="form-select" name="passengers[{{$i}}][gender]" required>
+                                                        <option value="M">Masculino</option>
+                                                        <option value="F">Femenino</option>
+                                                        <option value="O">Otro</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Teléfono *</label>
+                                                    <input type="tel" class="form-control" name="passengers[{{$i}}][phone]" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Email *</label>
+                                            <input type="email" class="form-control" name="passengers[{{$i}}][email]" required>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="text-center">
-                                    <small>1h 00m</small>
-                                    <br>
-                                    <i class="fas fa-plane text-muted"></i>
-                                </div>
-                                <div>
-                                    <strong>11:00</strong>
-                                    <br>
-                                    <small>BOG - Bogotá</small>
-                                </div>
+                            @endfor
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="fas fa-credit-card me-2"></i> Continuar al Pago
+                                </button>
+                                <a href="{{ route('flights.search') }}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i> Volver a la Búsqueda
+                                </a>
                             </div>
-                        </div>
-                        <div class="col-md-2">
-                            <span class="badge bg-success">160 asientos</span>
-                        </div>
-                        <div class="col-md-3 text-end">
-                            <h5>$230.000</h5>
-                            <a href="/bookings/create?flight=XF101" class="btn btn-primary btn-sm">
-                                Seleccionar
-                            </a>
-                        </div>
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
-
-        <a href="/search" class="btn btn-outline-primary">
-            <i class="fas fa-arrow-left me-2"></i>Nueva Búsqueda
-        </a>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -1,4 +1,5 @@
 <?php
+// database/migrations/xxxx_xx_xx_xxxxxx_create_passengers_table.php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -10,27 +11,18 @@ class CreatePassengersTable extends Migration
     {
         Schema::create('passengers', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('booking_id')->constrained('bookings');
+            $table->foreignId('booking_id')->constrained()->onDelete('cascade');
             $table->string('first_name');
+            $table->string('second_name')->nullable();
             $table->string('last_name');
+            $table->string('second_last_name');
             $table->date('birth_date');
-            $table->enum('gender', ['Hombre', 'Mujer', 'Otro']);
-            $table->string('other_gender')->nullable();
-            $table->enum('document_type', [
-                'Registro civil', 
-                'Tarjeta de identidad', 
-                'Cedula de Ciudadania', 
-                'Cedula de Extranjeria', 
-                'Tarjeta de Extranjeria', 
-                'Pasaporte', 
-                'Carné Diplomático', 
-                'Permiso Especial de Permanencia'
-            ]);
+            $table->string('gender');
+            $table->string('document_type');
             $table->string('document_number');
-            $table->boolean('is_infant')->default(false);
+            $table->string('seat', 10);
             $table->string('phone');
             $table->string('email');
-            $table->string('seat_number')->nullable();
             $table->timestamps();
         });
     }

@@ -1,37 +1,3 @@
-<!-- 
-
-use Illuminate\Support\Facades\Route;
-
-Route::get('/', function () {
-    return view('welcome');
-});
-
-Route::get('/search', function () {
-    return view('flights.search');
-});
-
-Route::get('/search-results', function () {
-    return view('flights.search-results');
-});
-
-Route::get('/bookings/create', function () {
-    return view('bookings.create');
-});
-
-Route::get('/bookings/payment', function () {
-    return view('bookings.payment');
-});
-
-Route::get('/bookings/confirmation', function () {
-    return view('bookings.confirmation');
-});
-
-Route::get('/login', function () {
-    return view('auth.login');
-});
- -->
-
-<!-- // web dos -->
 <?php
 
 use App\Http\Controllers\AuthController;
@@ -50,6 +16,14 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::get('/flights/search', [FlightController::class, 'showSearchForm'])->name('flights.search');
+Route::post('/flights/search', [FlightController::class, 'searchFlights']);
+
+// Rutas de reservas
+Route::post('/bookings/create', [BookingController::class, 'create'])->name('bookings.create');
+Route::post('/bookings/payment', [BookingController::class, 'payment'])->name('bookings.payment');
+Route::post('/bookings/process-payment', [BookingController::class, 'processPayment'])->name('bookings.process-payment');
+Route::get('/bookings/confirmation/{id}', [BookingController::class, 'confirmation'])->name('bookings.confirmation');
 
 // Rutas PÚBLICAS (sin autenticación)
 Route::get('/search', function () {
