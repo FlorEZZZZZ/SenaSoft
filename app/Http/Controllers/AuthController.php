@@ -6,91 +6,87 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
-    /**
-     * Mostrar formulario de login
-     */
     public function showLoginForm()
     {
         return view('auth.login');
     }
 
-    /**
-     * Procesar el login
-     */
     public function login(Request $request)
     {
-        // Validación de datos
-        $validator = Validator::make($request->all(), [
+        $credentials = $request->validate([
             'email' => 'required|email',
-            'password' => 'required|min:6'
+            'password' => 'required'
         ]);
 
-        if ($validator->fails()) {
-            return back()->withErrors($validator)->withInput();
-        }
-
-        // Intentar autenticación
-        $credentials = $request->only('email', 'password');
-        
-        if (Auth::attempt($credentials, $request->remember)) {
+        if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            
-            return redirect()->route('flights.search')->with('success', '¡Bienvenido a X-Fly!');
+            return redirect()->route('flights.search')->with('success', '¡Bienvenido!');
         }
 
-        return back()->withErrors([
-            'email' => 'Las credenciales proporcionadas no son correctas.',
-        ])->withInput($request->only('email', 'remember'));
+        return back()->withErrors(['email' => 'Credenciales incorrectas.']);
     }
 
-    /**
-     * Mostrar formulario de registro
-     */
     public function showRegisterForm()
     {
         return view('auth.register');
     }
 
-    /**
-     * Procesar el registro
-     */
     public function register(Request $request)
     {
-        // Validación de datos
-        $validator = Validator::make($request->all(), [
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users',
-            'phone' => 'nullable|string|max:20',
-            'password' => 'required|min:8|confirmed'
-        ]);
+        \Log::info('=== INICIANDO PROCESO DE REGISTRO ===');
+        \Log::info('Datos recibidos del formulario:', $request->all());
 
-        if ($validator->fails()) {
-            return back()->withErrors($validator)->withInput();
+        try {
+            \Log::info('Validando datos...');
+            
+            $validated = $request->validate([
+                'first_name' => 'required|string|max:255',
+                'last_name' => 'required|string|max:255',
+                'email' => 'required|email|unique:users',
+                'phone' => 'nullable|string',
+                'password' => 'required|min:8|confirmed'
+            ]);
+
+            \Log::info('✅ Datos validados correctamente:', $validated);
+
+            \Log::info('Creando usuario en la base de datos...');
+            $user = User::create([
+                'first_name' => $validated['first_name'],
+                'last_name' => $validated['last_name'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'],
+                'password' => Hash::make($validated['password'])
+            ]);
+
+            \Log::info('✅ Usuario creado exitosamente. ID: ' . $user->id);
+            \Log::info('Usuario creado:', $user->toArray());
+
+            \Log::info('Iniciando sesión del usuario...');
+            Auth::login($user);
+            \Log::info('✅ Sesión iniciada correctamente');
+
+            \Log::info('=== REGISTRO COMPLETADO EXITOSAMENTE ===');
+            return redirect()->route('flights.search')->with('success', '¡Cuenta creada exitosamente!');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('❌ ERROR de validación:', $e->errors());
+            \Log::error('Datos que fallaron:', $request->all());
+            throw $e;
+
+        } catch (\Exception $e) {
+            \Log::error('❌ ERROR en registro: ' . $e->getMessage());
+            \Log::error('Archivo: ' . $e->getFile());
+            \Log::error('Línea: ' . $e->getLine());
+            \Log::error('Trace: ' . $e->getTraceAsString());
+            
+            return back()->with('error', 'Error al crear la cuenta: ' . $e->getMessage())
+                         ->withInput();
         }
-
-        // Crear usuario
-        $user = User::create([
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'password' => Hash::make($request->password)
-        ]);
-
-        // Autenticar al usuario automáticamente
-        Auth::login($user);
-
-        return redirect()->route('flights.search')->with('success', '¡Cuenta creada exitosamente! Bienvenido a X-Fly.');
     }
 
-    /**
-     * Cerrar sesión
-     */
     public function logout(Request $request)
     {
         Auth::logout();
@@ -98,37 +94,5 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/')->with('success', 'Sesión cerrada correctamente.');
-    }
-
-    /**
-     * Mostrar perfil de usuario
-     */
-    public function profile()
-    {
-        $user = Auth::user();
-        return view('auth.profile', compact('user'));
-    }
-
-    /**
-     * Actualizar perfil de usuario
-     */
-    public function updateProfile(Request $request)
-    {
-        $user = Auth::user();
-
-        $validator = Validator::make($request->all(), [
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
-            'phone' => 'nullable|string|max:20',
-        ]);
-
-        if ($validator->fails()) {
-            return back()->withErrors($validator)->withInput();
-        }
-
-        $user->update($request->only('first_name', 'last_name', 'email', 'phone'));
-
-        return back()->with('success', 'Perfil actualizado correctamente.');
     }
 }
