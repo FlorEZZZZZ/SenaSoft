@@ -127,7 +127,7 @@
                                                 <label class="form-label fw-bold">Selecciona tu método de pago:</label>
                                                 
                                                 <!-- Nequi -->
-                                                <div class="payment-method-card" onclick="selectPaymentMethod('nequi')">
+                                                <div class="payment-method-card" data-method="nequi">
                                                     <div class="form-check">
                                                         <input class="form-check-input" type="radio" name="payment_method" id="nequi" value="nequi" required>
                                                         <label class="form-check-label fw-bold" for="nequi">
@@ -137,7 +137,7 @@
                                                 </div>
 
                                                 <!-- Daviplata -->
-                                                <div class="payment-method-card" onclick="selectPaymentMethod('daviplata')">
+                                                <div class="payment-method-card" data-method="daviplata">
                                                     <div class="form-check">
                                                         <input class="form-check-input" type="radio" name="payment_method" id="daviplata" value="daviplata">
                                                         <label class="form-check-label fw-bold" for="daviplata">
@@ -147,7 +147,7 @@
                                                 </div>
 
                                                 <!-- Tarjeta de Crédito -->
-                                                <div class="payment-method-card" onclick="selectPaymentMethod('credit_card')">
+                                                <div class="payment-method-card" data-method="credit_card">
                                                     <div class="form-check">
                                                         <input class="form-check-input" type="radio" name="payment_method" id="creditCard" value="credit_card">
                                                         <label class="form-check-label fw-bold" for="creditCard">
@@ -157,7 +157,7 @@
                                                 </div>
 
                                                 <!-- Tarjeta de Débito -->
-                                                <div class="payment-method-card" onclick="selectPaymentMethod('debit_card')">
+                                                <div class="payment-method-card" data-method="debit_card">
                                                     <div class="form-check">
                                                         <input class="form-check-input" type="radio" name="payment_method" id="debitCard" value="debit_card">
                                                         <label class="form-check-label fw-bold" for="debitCard">
@@ -167,7 +167,7 @@
                                                 </div>
 
                                                 <!-- PSE -->
-                                                <div class="payment-method-card" onclick="selectPaymentMethod('pse')">
+                                                <div class="payment-method-card" data-method="pse">
                                                     <div class="form-check">
                                                         <input class="form-check-input" type="radio" name="payment_method" id="pse" value="pse">
                                                         <label class="form-check-label fw-bold" for="pse">
@@ -185,9 +185,9 @@
                                                     </div>
                                                     <div class="card-body">
                                                         <div class="mb-3">
-                                                            <label class="form-label">Número de teléfono</label>
+                                                            <label class="form-label">Número de teléfono *</label>
                                                             <input type="tel" name="phone_number" class="form-control" placeholder="Ej: 3001234567" maxlength="10">
-                                                            <small class="form-text text-muted">Ingresa el número asociado a tu cuenta</small>
+                                                            <small class="form-text text-muted">Ingresa el número asociado a tu cuenta Nequi o Daviplata</small>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -201,21 +201,21 @@
                                                     </div>
                                                     <div class="card-body">
                                                         <div class="mb-3">
-                                                            <label class="form-label">Número de tarjeta</label>
+                                                            <label class="form-label">Número de tarjeta *</label>
                                                             <input type="text" name="card_number" class="form-control" placeholder="1234 5678 9012 3456" maxlength="19">
                                                         </div>
                                                         <div class="row">
                                                             <div class="col-md-6">
-                                                                <label class="form-label">Fecha de expiración</label>
+                                                                <label class="form-label">Fecha de expiración *</label>
                                                                 <input type="text" name="card_expiry" class="form-control" placeholder="MM/AA" maxlength="5">
                                                             </div>
                                                             <div class="col-md-6">
-                                                                <label class="form-label">CVV</label>
+                                                                <label class="form-label">CVV *</label>
                                                                 <input type="text" name="card_cvv" class="form-control" placeholder="123" maxlength="3">
                                                             </div>
                                                         </div>
                                                         <div class="mt-3">
-                                                            <label class="form-label">Nombre del titular</label>
+                                                            <label class="form-label">Nombre del titular *</label>
                                                             <input type="text" name="card_holder" class="form-control" placeholder="Como aparece en la tarjeta">
                                                         </div>
                                                     </div>
@@ -249,7 +249,7 @@
         </div>
     </div>
 
-    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -259,15 +259,43 @@
             const payButton = document.getElementById('payButton');
             const paymentForm = document.getElementById('paymentForm');
 
-            // Seleccionar método de pago
-            function selectPaymentMethod(method) {
+            // Agregar event listeners a todos los cards de métodos de pago
+            document.querySelectorAll('.payment-method-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const method = this.getAttribute('data-method');
+                    selectPaymentMethod(method, this);
+                });
+            });
+
+            // También agregar event listeners a los radio buttons directamente
+            paymentMethods.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    const method = this.value;
+                    const card = this.closest('.payment-method-card');
+                    selectPaymentMethod(method, card);
+                });
+            });
+
+            // Función para seleccionar método de pago
+            function selectPaymentMethod(method, cardElement) {
+                console.log('Seleccionando método:', method);
+                
                 // Remover selección anterior
                 document.querySelectorAll('.payment-method-card').forEach(card => {
                     card.classList.remove('selected');
                 });
 
                 // Agregar selección actual
-                event.currentTarget.classList.add('selected');
+                if (cardElement) {
+                    cardElement.classList.add('selected');
+                }
+
+                // Marcar el radio button correspondiente
+                const radioButton = document.querySelector(`input[value="${method}"]`);
+                if (radioButton) {
+                    radioButton.checked = true;
+                    console.log('Radio button marcado:', radioButton.checked);
+                }
 
                 // Mostrar/ocultar campos según el método
                 cardFields.style.display = 'none';
@@ -275,12 +303,15 @@
 
                 if (method === 'credit_card' || method === 'debit_card') {
                     cardFields.style.display = 'block';
+                    console.log('Mostrando campos de tarjeta');
                 } else if (method === 'nequi' || method === 'daviplata') {
                     phoneFields.style.display = 'block';
+                    console.log('Mostrando campos de teléfono');
                 }
 
                 // Habilitar botón de pago
                 payButton.disabled = false;
+                console.log('Botón habilitado');
             }
 
             // Validación de formulario antes de enviar
@@ -293,12 +324,32 @@
                     return;
                 }
 
+                console.log('Método seleccionado:', selectedMethod.value);
+
                 // Validaciones específicas por método
                 if (selectedMethod.value === 'nequi' || selectedMethod.value === 'daviplata') {
                     const phoneNumber = document.querySelector('input[name="phone_number"]');
-                    if (!phoneNumber.value.trim() || phoneNumber.value.length < 10) {
+                    const phoneValue = phoneNumber.value.trim().replace(/\D/g, '');
+                    
+                    console.log('Validando teléfono:', phoneValue);
+                    
+                    if (!phoneValue) {
                         e.preventDefault();
-                        alert('❌ Por favor ingresa un número de teléfono válido (10 dígitos).');
+                        alert('❌ Por favor ingresa el número de cuenta para continuar.');
+                        phoneNumber.focus();
+                        return;
+                    }
+
+                    if (phoneValue.length !== 10) {
+                        e.preventDefault();
+                        alert('❌ El número de teléfono debe tener exactamente 10 dígitos.');
+                        phoneNumber.focus();
+                        return;
+                    }
+
+                    if (!/^3[0-9]{9}$/.test(phoneValue)) {
+                        e.preventDefault();
+                        alert('❌ El número de teléfono debe comenzar con 3 y tener 10 dígitos.');
                         phoneNumber.focus();
                         return;
                     }
@@ -310,27 +361,34 @@
                     const cardCvv = document.querySelector('input[name="card_cvv"]');
                     const cardHolder = document.querySelector('input[name="card_holder"]');
 
-                    if (!cardNumber.value.trim() || cardNumber.value.length < 16) {
+                    // Validar número de tarjeta
+                    const cardNumberValue = cardNumber.value.trim().replace(/\s+/g, '');
+                    if (!cardNumberValue || cardNumberValue.length < 16) {
                         e.preventDefault();
-                        alert('❌ Por favor ingresa un número de tarjeta válido.');
+                        alert('❌ Por favor ingresa un número de tarjeta válido (16 dígitos).');
                         cardNumber.focus();
                         return;
                     }
 
-                    if (!cardExpiry.value.trim() || !cardExpiry.value.includes('/')) {
+                    // Validar fecha de expiración
+                    const expiryValue = cardExpiry.value.trim();
+                    if (!expiryValue || !/^\d{2}\/\d{2}$/.test(expiryValue)) {
                         e.preventDefault();
                         alert('❌ Por favor ingresa una fecha de expiración válida (MM/AA).');
                         cardExpiry.focus();
                         return;
                     }
 
-                    if (!cardCvv.value.trim() || cardCvv.value.length !== 3) {
+                    // Validar CVV
+                    const cvvValue = cardCvv.value.trim();
+                    if (!cvvValue || cvvValue.length !== 3) {
                         e.preventDefault();
                         alert('❌ Por favor ingresa un CVV válido (3 dígitos).');
                         cardCvv.focus();
                         return;
                     }
 
+                    // Validar nombre del titular
                     if (!cardHolder.value.trim()) {
                         e.preventDefault();
                         alert('❌ Por favor ingresa el nombre del titular de la tarjeta.');
@@ -367,6 +425,8 @@
                 let value = e.target.value.replace(/\D/g, '');
                 if (value.length >= 2) {
                     e.target.value = value.substring(0, 2) + '/' + value.substring(2, 4);
+                } else {
+                    e.target.value = value;
                 }
             });
 
@@ -379,7 +439,14 @@
             document.querySelector('input[name="phone_number"]')?.addEventListener('input', function(e) {
                 e.target.value = e.target.value.replace(/\D/g, '').substring(0, 10);
             });
+
+            // Debug: Mostrar en consola cuando se cargue la página
+            console.log('Página de pago cargada correctamente');
+            console.log('Elementos encontrados:');
+            console.log('- cardFields:', cardFields);
+            console.log('- phoneFields:', phoneFields);
+            console.log('- payButton:', payButton);
         });
     </script>
 </body>
-</html> 
+</html>
