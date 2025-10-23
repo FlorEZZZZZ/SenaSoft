@@ -2,64 +2,45 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Payment;
 use Illuminate\Http\Request;
 
 class PaymentController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function showPayment(Request $request)
     {
-        //
+        // Obtener datos de la reserva desde la sesión
+        $booking = session('current_booking');
+
+        if (!$booking) {
+            return redirect()->route('bookings.create')->with('error', 'No hay reserva activa. Por favor completa el formulario de reserva primero.');
+        }
+
+        return view('bookings.payment', compact('booking'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function processPayment(Request $request)
     {
-        //
-    }
+        $request->validate([
+            'payment_method' => 'required|in:nequi,daviplata,credit_card,debit_card,pse',
+            'card_number' => 'required_if:payment_method,credit_card,debit_card',
+            'card_expiry' => 'required_if:payment_method,credit_card,debit_card',
+            'card_cvv' => 'required_if:payment_method,credit_card,debit_card'
+        ]);
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
+        try {
+            // Simular procesamiento de pago
+            $paymentSuccess = rand(0, 1); // 50% de probabilidad de éxito
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Payment $payment)
-    {
-        //
-    }
+            if ($paymentSuccess) {
+                // Pago exitoso - redirigir a confirmación
+                return redirect()->route('bookings.confirmation')->with('success', 'Pago procesado exitosamente.');
+            } else {
+                // Pago fallido
+                return back()->with('error', 'El pago falló. Por favor intenta con otro método.');
+            }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Payment $payment)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Payment $payment)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Payment $payment)
-    {
-        //
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error al procesar el pago: ' . $e->getMessage());
+        }
     }
 }
